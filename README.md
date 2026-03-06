@@ -252,7 +252,7 @@ http://localhost:3001/api/docs
 
 **En producción** (desplegado en Render):
 ```
-https://nestjs-backend-test.onrender.com/api/docs
+https://nestjs-backend-test-q07s.onrender.com/api/docs
 ```
 
 > El despliegue en Render se realizó para facilitar la evaluación del sistema sin requerir configuración local. La base de datos PostgreSQL también está en Render.
@@ -261,7 +261,7 @@ https://nestjs-backend-test.onrender.com/api/docs
 
 Apunta las peticiones a cualquiera de las dos bases:
 - Local: `http://localhost:3001`
-- Producción: `https://nestjs-backend-test.onrender.com`
+- Producción: `https://nestjs-backend-test-q07s.onrender.com`
 
 ---
 
@@ -269,7 +269,7 @@ Apunta las peticiones a cualquiera de las dos bases:
 
 Base URL local: `http://localhost:3001`
 
-Base URL producción: `https://nestjs-backend-test.onrender.com`
+Base URL producción: `https://nestjs-backend-test-q07s.onrender.com`
 
 ### POST `/tasks` — Crear tarea
 
