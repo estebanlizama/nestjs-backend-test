@@ -1,160 +1,263 @@
-# NestJS Tasks Management API (Senior Backend Test)
+# NestJS Tasks Management API
 
-Esta es una API RESTful para la gestión de tareas construida con NestJS y PostgreSQL mediante Prisma v5, cumpliendo con todos los requisitos técnicos en la evaluación de Backend Senior.
+API RESTful de gestión de tareas construida con NestJS, Prisma v5 y PostgreSQL.
 
 ---
 
-## Requisitos Previos
+## Requisitos del Sistema
 
-Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas en tu sistema:
+| Herramienta | Versión mínima | Obligatorio para |
+|-------------|----------------|-----------------|
+| Node.js     | v18.x          | Inicio manual    |
+| npm         | v9.x           | Inicio manual    |
+| PostgreSQL  | v13.x          | Inicio manual    |
+| Docker      | v24.x          | Inicio con Docker |
+| Docker Compose | v2.x        | Inicio con Docker |
 
-| Herramienta | Versión mínima recomendada | Notas |
-|-------------|---------------------------|-------|
-| Node.js     | v18.x o superior          | Probado con v22.12.0. Descargar desde https://nodejs.org |
-| npm         | v9.x o superior           | Incluido con Node.js. Probado con 10.9.0 |
-| PostgreSQL  | v13 o superior            | Debe correr localmente en el puerto 5432 por defecto |
+---
 
-Para verificar tus versiones instaladas ejecuta:
+## Formas de Iniciar el Proyecto
+
+Este proyecto soporta tres modalidades de inicio según el entorno disponible:
+
+- **Opción A:** Docker (Windows / macOS / Linux — sin instalar Node ni Postgres localmente)
+- **Opción B:** Manual en Windows
+- **Opción C:** Manual en Linux / macOS
+
+---
+
+## Opción A: Docker (Recomendado)
+
+Levanta PostgreSQL y la API automáticamente, sin configuración adicional.
+
+### 1. Instalar Docker
+
+**Windows y macOS — Docker Desktop:**
+
+Descarga el instalador desde:
+- Windows: https://docs.docker.com/desktop/setup/install/windows-install/
+- macOS: https://docs.docker.com/desktop/setup/install/mac-install/
+
+Ejecuta el instalador, acepta los términos y espera a que el motor inicie (ícono de ballena activo en la barra de tareas).
+
+**Linux — Docker Engine + Compose Plugin (sin interfaz gráfica):**
+
 ```bash
-node --version
-npm --version
+# Instala Docker Engine
+curl -fsSL https://get.docker.com | sh
+
+# Agrega tu usuario al grupo docker
+sudo usermod -aG docker $USER && newgrp docker
+
+# Instala el plugin Compose
+sudo apt install docker-compose-plugin    # Ubuntu/Debian
+sudo dnf install docker-compose-plugin   # Fedora/RHEL
 ```
 
----
+**Verificar instalación:**
 
-## Instalación Paso a Paso
+```bash
+docker --version
+docker compose version
+```
 
-### 1. Clonar el repositorio
+### 2. Clonar el repositorio
 
 ```bash
 git clone https://github.com/estebanlizama/nestjs-backend-test.git
 cd nestjs-backend-test
 ```
 
-### 2. Instalar dependencias del proyecto
-
-El proyecto utiliza NestJS como framework principal. Todas las dependencias incluyendo el CLI de Prisma y el cliente `@prisma/client` se instalan automáticamente con:
+### 3. Levantar el entorno
 
 ```bash
+docker compose up --build
+```
+
+Esto ejecuta automáticamente:
+- Descarga PostgreSQL 15
+- Construye la imagen de la API desde el `Dockerfile`
+- Espera a que Postgres esté listo (healthcheck)
+- Ejecuta `npx prisma db push` para crear las tablas
+- Inicia NestJS en modo watch en el puerto `3001`
+
+La API queda disponible en: `http://localhost:3001`
+
+> Las credenciales de la base de datos vienen preconfiguradas en `docker-compose.yml`. No se requiere archivo `.env`.
+
+### 4. Comandos útiles con Docker
+
+```bash
+# Ver logs de la API en tiempo real
+docker compose logs -f app
+
+# Detener los servicios
+docker compose down
+
+# Detener y eliminar datos de la base de datos
+docker compose down -v
+
+# Reconstruir la imagen desde cero
+docker compose build --no-cache && docker compose up
+```
+
+---
+
+## Opción B: Manual en Windows
+
+### 1. Instalar Node.js
+
+Descarga el instalador LTS desde https://nodejs.org/ (v18 o superior).
+
+Verifica la instalación en PowerShell o CMD:
+```cmd
+node --version
+npm --version
+```
+
+### 2. Instalar PostgreSQL
+
+Descarga el instalador desde https://www.postgresql.org/download/windows/
+
+Durante la instalación:
+- Puerto por defecto: `5432`
+- Usuario por defecto: `postgres`
+- Elige y guarda la contraseña que configures
+
+Crea la base de datos desde pgAdmin o CMD:
+```cmd
+psql -U postgres -c "CREATE DATABASE test_tasks;"
+```
+
+### 3. Clonar e instalar dependencias
+
+```cmd
+git clone https://github.com/estebanlizama/nestjs-backend-test.git
+cd nestjs-backend-test
 npm install
 ```
 
-Esto instalará entre otras dependencias clave:
-- `@nestjs/core`, `@nestjs/common`, `@nestjs/platform-express` — Framework NestJS
-- `prisma@5.10.2` — CLI de Prisma para migraciones y generación de cliente
-- `@prisma/client@5.10.2` — Cliente Prisma para interactuar con PostgreSQL
-- `class-validator` y `class-transformer` — Validación de DTOs
+### 4. Configurar variables de entorno
 
-> Nota: Este proyecto usa Prisma v5 intencionalmente por compatibilidad con la configuración de TypeScript del test. Evita actualizar a v6 o v7 sin revisar la compatibilidad.
-
-### 3. Configurar variables de entorno
-
-Copia el archivo de ejemplo `.env.example` a `.env`:
-
-```bash
-# En Windows (PowerShell)
+Copia el archivo de ejemplo:
+```cmd
 Copy-Item .env.example .env
-
-# En Linux / macOS
-cp .env.example .env
 ```
 
-Luego edita el archivo `.env` con tus credenciales reales de PostgreSQL:
-
+Edita `.env` con tus datos:
 ```env
-# URL de conexión a tu base de datos PostgreSQL local
-# Formato: postgresql://USUARIO:CONTRASENA@HOST:PUERTO/NOMBRE_DB?schema=public
 DATABASE_URL="postgresql://postgres:TU_CONTRASENA@localhost:5432/test_tasks?schema=public"
-
-# Puerto en el que correrá la aplicación NestJS
 PORT=3001
-
-# Orígenes permitidos para CORS (separados por coma)
 ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
 ```
 
-> Asegúrate de que la base de datos `test_tasks` exista en tu PostgreSQL local. Puedes crearla ejecutando en psql: `CREATE DATABASE test_tasks;`
+### 5. Sincronizar la base de datos y levantar
 
-### 4. Generar el cliente Prisma
+```cmd
+npx prisma generate
+npx prisma db push
+npm run start:dev
+```
 
-Cada vez que se instalen las dependencias o se modifique el schema, regenera el cliente de Prisma:
+---
+
+## Opción C: Manual en Linux / macOS
+
+### 1. Instalar Node.js (via nvm — recomendado)
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc   # o source ~/.zshrc en macOS
+nvm install 22
+nvm use 22
+node --version
+```
+
+### 2. Instalar PostgreSQL
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update && sudo apt install -y postgresql postgresql-contrib
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+**macOS (Homebrew):**
+```bash
+brew install postgresql@15
+brew services start postgresql@15
+```
+
+Crea la base de datos:
+```bash
+sudo -u postgres psql -c "CREATE DATABASE test_tasks;"
+```
+
+### 3. Clonar e instalar dependencias
+
+```bash
+git clone https://github.com/estebanlizama/nestjs-backend-test.git
+cd nestjs-backend-test
+npm install
+```
+
+### 4. Configurar variables de entorno
+
+```bash
+cp .env.example .env
+nano .env   # o el editor de tu preferencia
+```
+
+Actualiza con tus credenciales:
+```env
+DATABASE_URL="postgresql://postgres:TU_CONTRASENA@localhost:5432/test_tasks?schema=public"
+PORT=3001
+ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
+```
+
+### 5. Sincronizar la base de datos y levantar
 
 ```bash
 npx prisma generate
-```
-
-### 5. Sincronizar el schema con la base de datos
-
-Ejecuta el siguiente comando para que Prisma cree automáticamente todas las tablas definidas en `prisma/schema.prisma`:
-
-```bash
 npx prisma db push
-```
-
-Este comando crea la tabla `Task` con todos sus campos y enums (`TaskStatus`, `TaskPriority`) en tu base de datos. No requiere archivos de migración.
-
-Para verificar que las tablas se crearon correctamente, puedes usar el explorador visual de Prisma:
-
-```bash
-npx prisma studio
-```
-
----
-
-## Ejecución del Proyecto
-
-Una vez que la base de datos y las variables de entorno estén configuradas, levanta la aplicación.
-
-```bash
-# Modo desarrollo con hot-reload (recomendado durante desarrollo)
 npm run start:dev
-
-# Modo producción
-npm run build
-npm run start:prod
 ```
-
-La aplicación estará disponible en: `http://localhost:3001` (según el `PORT` configurado).
 
 ---
 
-## Pruebas Unitarias
-
-El proyecto incluye tests unitarios para `TasksService` y `TasksController` usando Jest con mocks de PrismaService:
+## Scripts Disponibles
 
 ```bash
-# Correr todos los tests unitarios
-npm run test
-
-# Correr en modo watch (re-ejecuta al guardar)
-npm run test:watch
-
-# Ver cobertura de código
-npm run test:cov
+npm run start:dev    # Desarrollo con hot-reload
+npm run build        # Compilar para producción
+npm run start:prod   # Ejecutar build de producción
+npm run test         # Correr tests unitarios (Jest)
+npm run test:cov     # Tests con reporte de cobertura
 ```
 
 ---
 
-## Documentación de Endpoints
+## Endpoints
 
 Base URL: `http://localhost:3001`
 
-| Method   | Endpoint              | Descripción                                                                 |
-|----------|-----------------------|-----------------------------------------------------------------------------|
-| POST     | `/tasks`              | Crea una nueva tarea. Requiere `title` en el body.                          |
-| GET      | `/tasks`              | Obtiene todas las tareas. Acepta `?status=` y `?priority=` como filtros.    |
-| GET      | `/tasks/:id`          | Obtiene una tarea específica por su ID.                                     |
-| PATCH    | `/tasks/:id`          | Actualiza cualquier campo permitido de la tarea (UpdateTaskDto).            |
-| PATCH    | `/tasks/:id/status`   | Actualiza únicamente el campo `status` de la tarea (UpdateTaskStatusDto).   |
-| DELETE   | `/tasks/:id`          | Elimina una tarea por su ID.                                                |
+| Método | Endpoint            | Descripción                                       |
+|--------|---------------------|---------------------------------------------------|
+| POST   | `/tasks`            | Crear tarea. Requiere `title` en el body.         |
+| GET    | `/tasks`            | Listar todas. Acepta `?status=` y `?priority=`.   |
+| GET    | `/tasks/:id`        | Obtener una tarea por ID.                         |
+| PATCH  | `/tasks/:id`        | Actualizar campos de la tarea.                    |
+| PATCH  | `/tasks/:id/status` | Actualizar solo el estado.                        |
+| DELETE | `/tasks/:id`        | Eliminar una tarea por ID.                        |
 
-### Valores válidos para enums
+**Valores válidos:**
 
-**TaskStatus:** `PENDING`, `IN_PROGRESS`, `DONE`
+| Campo    | Valores aceptados                 |
+|----------|-----------------------------------|
+| status   | `PENDING`, `IN_PROGRESS`, `DONE`  |
+| priority | `LOW`, `MEDIUM`, `HIGH`           |
 
-**TaskPriority:** `LOW`, `MEDIUM`, `HIGH`
-
-### Ejemplo de body para POST `/tasks`
+**Body de ejemplo para POST `/tasks`:**
 
 ```json
 {
@@ -171,33 +274,21 @@ Base URL: `http://localhost:3001`
 
 ```
 src/
-├── common/
-│   └── filters/
-│       └── http-exception.filter.ts   # Filtro global de errores HTTP
+├── common/filters/http-exception.filter.ts   # Manejo global de errores
 ├── prisma/
-│   ├── prisma.module.ts               # Módulo global de Prisma
-│   └── prisma.service.ts              # Servicio que extiende PrismaClient
+│   ├── prisma.module.ts
+│   └── prisma.service.ts                     # Extiende PrismaClient
 ├── tasks/
-│   ├── controllers/
-│   │   └── tasks.controller.ts        # Endpoints REST de Tasks
-│   ├── dto/
-│   │   ├── create-task.dto.ts
-│   │   ├── update-task.dto.ts
-│   │   ├── get-tasks-filter.dto.ts
-│   │   └── update-task-status.dto.ts
-│   ├── services/
-│   │   └── tasks.service.ts           # Lógica de negocio e interacción con Prisma
-│   └── tasks.module.ts
-├── app.module.ts
-└── main.ts                            # Punto de entrada, configuración global
-prisma/
-└── schema.prisma                      # Definición del modelo Task y enums
+│   ├── controllers/tasks.controller.ts       # Endpoints REST
+│   ├── dto/                                  # DTOs con validación
+│   └── services/tasks.service.ts             # Lógica de negocio
+└── main.ts                                   # Bootstrap + pipes + CORS
+prisma/schema.prisma                          # Modelo Task + enums
 ```
 
 ---
 
 ## Documentación Técnica
 
-Las respuestas a las preguntas teóricas y el análisis de código del test se encuentran en:
-- `answers.md` — Preguntas teóricas sobre NestJS y backend
-- `architecture.md` — Análisis de código y preguntas de arquitectura
+- `answers.md` — Respuestas a preguntas teóricas de NestJS y backend
+- `architecture.md` — Análisis de código y decisiones arquitectónicas
