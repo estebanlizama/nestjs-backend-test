@@ -237,27 +237,48 @@ npm run test:cov     # Tests con reporte de cobertura
 
 ---
 
-## Endpoints
+## Probando la API
 
-Base URL: `http://localhost:3001`
+Este proyecto ofrece dos formas de probar los endpoints.
 
-| Método | Endpoint            | Descripción                                       |
-|--------|---------------------|---------------------------------------------------|
-| POST   | `/tasks`            | Crear tarea. Requiere `title` en el body.         |
-| GET    | `/tasks`            | Listar todas. Acepta `?status=` y `?priority=`.   |
-| GET    | `/tasks/:id`        | Obtener una tarea por ID.                         |
-| PATCH  | `/tasks/:id`        | Actualizar campos de la tarea.                    |
-| PATCH  | `/tasks/:id/status` | Actualizar solo el estado.                        |
-| DELETE | `/tasks/:id`        | Eliminar una tarea por ID.                        |
+### Opción 1 — Swagger UI (Recomendado)
 
-**Valores válidos:**
+Se integró Swagger (`@nestjs/swagger`) para ofrecer documentación interactiva auto-generada desde el código. Permite explorar y ejecutar todos los endpoints directamente desde el navegador sin instalar ninguna herramienta adicional.
 
-| Campo    | Valores aceptados                 |
-|----------|-----------------------------------|
-| status   | `PENDING`, `IN_PROGRESS`, `DONE`  |
-| priority | `LOW`, `MEDIUM`, `HIGH`           |
+**En local** (con `npm run start:dev` o Docker):
+```
+http://localhost:3001/api/docs
+```
 
-**Body de ejemplo para POST `/tasks`:**
+**En producción** (desplegado en Render):
+```
+https://nestjs-backend-test.onrender.com/api/docs
+```
+
+> El despliegue en Render se realizó para facilitar la evaluación del sistema sin requerir configuración local. La base de datos PostgreSQL también está en Render.
+
+### Opción 2 — Postman / Insomnia
+
+Apunta las peticiones a cualquiera de las dos bases:
+- Local: `http://localhost:3001`
+- Producción: `https://nestjs-backend-test.onrender.com`
+
+---
+
+## Referencia de Endpoints
+
+Base URL local: `http://localhost:3001`
+
+Base URL producción: `https://nestjs-backend-test.onrender.com`
+
+### POST `/tasks` — Crear tarea
+
+| Campo       | Tipo   | Requerido | Descripción                     |
+|-------------|--------|-----------|----------------------------------|
+| title       | string | Sí        | Mínimo 3, máximo 150 caracteres |
+| description | string | Sí        | Máximo 500 caracteres           |
+| status      | enum   | No        | Default: `PENDING`              |
+| priority    | enum   | No        | Default: `MEDIUM`               |
 
 ```json
 {
@@ -267,6 +288,40 @@ Base URL: `http://localhost:3001`
   "priority": "HIGH"
 }
 ```
+
+Respuestas: `201 Created` | `400 Bad Request`
+
+### GET `/tasks` — Listar tareas
+
+| Query param | Ejemplo                              |
+|-------------|--------------------------------------|
+| status      | `?status=PENDING`                    |
+| priority    | `?priority=HIGH`                     |
+| Ambos       | `?status=IN_PROGRESS&priority=LOW`   |
+
+Respuestas: `200 OK`
+
+### GET `/tasks/:id` — Obtener tarea
+
+Respuestas: `200 OK` | `404 Not Found`
+
+### PATCH `/tasks/:id` — Actualizar tarea (parcial)
+
+Todos los campos opcionales: `title`, `description`, `status`, `priority`.
+
+Respuestas: `200 OK` | `404 Not Found`
+
+### PATCH `/tasks/:id/status` — Cambiar estado
+
+```json
+{ "status": "IN_PROGRESS" }
+```
+
+Respuestas: `200 OK` | `404 Not Found` | `400 Bad Request`
+
+### DELETE `/tasks/:id` — Eliminar tarea
+
+Respuestas: `200 OK` | `404 Not Found`
 
 ---
 

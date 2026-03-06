@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
@@ -14,21 +15,33 @@ async function bootstrap() {
     }),
   );
 
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : [];
+  const allowedOrigins = process.env.ALLOWED_ORIGINS ?? '*';
+  const isOpenCors = allowedOrigins === '*';
 
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: isOpenCors
+      ? true
+      : (origin, callback) => {
+          const list = allowedOrigins.split(',');
+          if (!origin || list.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Tasks Management API')
+    .setDescription('RESTful API for task management built with NestJS and PostgreSQL')
+    .setVersion('1.0')
+    .addTag('tasks', 'Task CRUD operations')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
 
   app.useGlobalFilters(new GlobalExceptionFilter());
 
