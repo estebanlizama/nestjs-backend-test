@@ -9,9 +9,9 @@ export class CreateTaskDto {
   title: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(500)
-  description?: string;
+  description: string;
 
   @IsEnum(TaskStatus)
   @IsOptional()

@@ -274,17 +274,37 @@ Base URL: `http://localhost:3001`
 
 ```
 src/
-├── common/filters/http-exception.filter.ts   # Manejo global de errores
+├── common/
+│   └── filters/
+│       └── http-exception.filter.ts    # Filtro global: mapea errores Prisma a HTTP
 ├── prisma/
 │   ├── prisma.module.ts
-│   └── prisma.service.ts                     # Extiende PrismaClient
+│   └── prisma.service.ts               # Extiende PrismaClient, inyectable globalmente
 ├── tasks/
-│   ├── controllers/tasks.controller.ts       # Endpoints REST
-│   ├── dto/                                  # DTOs con validación
-│   └── services/tasks.service.ts             # Lógica de negocio
-└── main.ts                                   # Bootstrap + pipes + CORS
-prisma/schema.prisma                          # Modelo Task + enums
+│   ├── controllers/
+│   │   └── tasks.controller.ts         # HTTP: recibe params/body, delega al service
+│   ├── services/
+│   │   └── tasks.service.ts            # Business logic: validaciones y reglas de negocio
+│   ├── repositories/
+│   │   └── tasks.repository.ts         # Data layer: todas las operaciones Prisma
+│   ├── dto/
+│   │   ├── create-task.dto.ts
+│   │   ├── update-task.dto.ts
+│   │   ├── update-task-status.dto.ts
+│   │   └── get-tasks-filter.dto.ts
+│   └── tasks.module.ts
+└── main.ts                             # Bootstrap, ValidationPipe global, CORS
+prisma/
+└── schema.prisma                       # Modelo Task, enums TaskStatus y TaskPriority
 ```
+
+**Responsabilidades por capa:**
+
+| Capa | Responsabilidad |
+|------|----------------|
+| `Controller` | Recibe la request HTTP, extrae body/params y retorna la respuesta |
+| `Service` | Contiene la lógica de negocio y lanza excepciones NestJS (`NotFoundException`) |
+| `Repository` | Ejecuta las queries Prisma. Retorna `Task | null`, sin lanzar excepciones |
 
 ---
 

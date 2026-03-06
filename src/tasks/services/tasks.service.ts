@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Task } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { TasksRepository } from '../repositories/tasks.repository';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 import { GetTasksFilterDto } from '../dto/get-tasks-filter.dto';
@@ -8,37 +8,18 @@ import { UpdateTaskStatusDto } from '../dto/update-task-status.dto';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly tasksRepository: TasksRepository) {}
 
-  async create(createTaskDto: CreateTaskDto): Promise<Task> {
-    const { title, description, status, priority } = createTaskDto;
-
-    return this.prisma.task.create({
-      data: {
-        title,
-        ...(description !== undefined && { description }),
-        ...(status && { status }),
-        ...(priority && { priority }),
-      },
-    });
+  create(createTaskDto: CreateTaskDto): Promise<Task> {
+    return this.tasksRepository.create(createTaskDto);
   }
 
-  async findAll(filterDto: GetTasksFilterDto): Promise<Task[]> {
-    const { status, priority } = filterDto;
-
-    return this.prisma.task.findMany({
-      where: {
-        ...(status && { status }),
-        ...(priority && { priority }),
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  findAll(filterDto: GetTasksFilterDto): Promise<Task[]> {
+    return this.tasksRepository.findAll(filterDto.status, filterDto.priority);
   }
 
   async findOne(id: string): Promise<Task> {
-    const task = await this.prisma.task.findUnique({
-      where: { id },
-    });
+    const task = await this.tasksRepository.findById(id);
 
     if (!task) {
       throw new NotFoundException(`Task ${id} not found`);
@@ -50,10 +31,7 @@ export class TasksService {
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
     await this.findOne(id);
 
-    return this.prisma.task.update({
-      where: { id },
-      data: { ...updateTaskDto },
-    });
+    return this.tasksRepository.update(id, updateTaskDto);
   }
 
   async updateStatus(
@@ -62,17 +40,12 @@ export class TasksService {
   ): Promise<Task> {
     await this.findOne(id);
 
-    return this.prisma.task.update({
-      where: { id },
-      data: { status: updateTaskStatusDto.status },
-    });
+    return this.tasksRepository.updateStatus(id, updateTaskStatusDto.status);
   }
 
   async remove(id: string): Promise<Task> {
     await this.findOne(id);
 
-    return this.prisma.task.delete({
-      where: { id },
-    });
+    return this.tasksRepository.delete(id);
   }
 }
