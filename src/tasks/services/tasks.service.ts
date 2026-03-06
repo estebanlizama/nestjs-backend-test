@@ -40,7 +40,7 @@ export class TasksService {
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
-    await this.findOne(id); // Ensure task exists before updating
+    await this.findOne(id); 
 
     return this.prisma.task.update({
       where: { id },
@@ -58,7 +58,7 @@ export class TasksService {
   }
 
   async remove(id: string) {
-    await this.findOne(id); // Ensure task exists before deleting
+    await this.findOne(id); 
 
     return this.prisma.task.delete({
       where: { id },
