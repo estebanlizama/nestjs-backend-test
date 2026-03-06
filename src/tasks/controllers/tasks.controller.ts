@@ -7,7 +7,10 @@ import {
   Param,
   Delete,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
+import { Task } from '@prisma/client';
 import { TasksService } from '../services/tasks.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
@@ -19,35 +22,44 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     return this.tasksService.create(createTaskDto);
   }
 
   @Get()
-  findAll(@Query() filterDto: GetTasksFilterDto) {
+  @HttpCode(HttpStatus.OK)
+  findAll(@Query() filterDto: GetTasksFilterDto): Promise<Task[]> {
     return this.tasksService.findAll(filterDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  @HttpCode(HttpStatus.OK)
+  findOne(@Param('id') id: string): Promise<Task> {
     return this.tasksService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+  @HttpCode(HttpStatus.OK)
+  update(
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
     return this.tasksService.update(id, updateTaskDto);
   }
 
   @Patch(':id/status')
+  @HttpCode(HttpStatus.OK)
   updateStatus(
     @Param('id') id: string,
     @Body() updateTaskStatusDto: UpdateTaskStatusDto,
-  ) {
+  ): Promise<Task> {
     return this.tasksService.updateStatus(id, updateTaskStatusDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  @HttpCode(HttpStatus.OK)
+  remove(@Param('id') id: string): Promise<Task> {
     return this.tasksService.remove(id);
   }
 }

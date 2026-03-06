@@ -27,9 +27,12 @@ enum TaskPriority {
 model Task {
   id          String       @id @default(uuid())
   title       String
-  description String
+  description String?
   status      TaskStatus   @default(PENDING)
   priority    TaskPriority @default(MEDIUM)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  @@index([status])
+  @@index([priority])
 }

@@ -1,14 +1,17 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, MaxLength, MinLength } from 'class-validator';
 import { TaskStatus, TaskPriority } from '@prisma/client';
 
 export class CreateTaskDto {
   @IsString()
   @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(150)
   title: string;
 
   @IsString()
-  @IsNotEmpty()
-  description: string;
+  @IsOptional()
+  @MaxLength(500)
+  description?: string;
 
   @IsEnum(TaskStatus)
   @IsOptional()
